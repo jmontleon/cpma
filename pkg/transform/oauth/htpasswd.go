@@ -2,9 +2,7 @@ package oauth
 
 import (
 	"encoding/base64"
-	"path/filepath"
 
-	"github.com/fusor/cpma/env"
 	"github.com/fusor/cpma/pkg/transform/secrets"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 
@@ -14,11 +12,17 @@ import (
 // IdentityProviderHTPasswd is a htpasswd specific identity provider
 type IdentityProviderHTPasswd struct {
 	identityProviderCommon `yaml:",inline"`
-	HTPasswd               struct {
-		FileData struct {
-			Name string `yaml:"name"`
-		} `yaml:"fileData"`
-	} `yaml:"htpasswd"`
+	HTPasswd               `yaml:"htpasswd"`
+}
+
+// HTpasswd contains the FileData of an htpasswd file
+type HTPasswd struct {
+	FileData FileData `yaml:"fileData"`
+}
+
+// Filedata of an htpasswd file
+type FileData struct {
+	Name string `yaml:"name"`
 }
 
 func buildHTPasswdIP(serializer *json.Serializer, p IdentityProvider) (IdentityProviderHTPasswd, secrets.Secret) {
@@ -36,12 +40,7 @@ func buildHTPasswdIP(serializer *json.Serializer, p IdentityProvider) (IdentityP
 	secretName := p.Name + "-secret"
 	idP.HTPasswd.FileData.Name = secretName
 
-	host := env.Config().GetString("Source")
-	src := filepath.Join(htpasswd.File)
-	dst := filepath.Join(env.Config().GetString("OutputDir"), host, htpasswd.File)
-	f := GetFile(host, src, dst)
-
-	encoded := base64.StdEncoding.EncodeToString(f)
+	encoded := base64.StdEncoding.EncodeToString(p.HTFileData)
 	secret := secrets.GenSecret(secretName, encoded, "openshift-config", "htpasswd")
 
 	return idP, *secret
