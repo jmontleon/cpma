@@ -97,12 +97,12 @@ func (e ImageExtraction) buildManifestOutput() (Output, error) {
 }
 
 func (e ImageExtraction) buildReportOutput() (Output, error) {
-	reportOutput := ReportOutput{
-		Component: ImageComponentName,
+	componentReport := ComponentReport{
+		Component: CrioComponentName,
 	}
 
 	for range e.RegistriesConfig.Registries["block"].List {
-		reportOutput.Reports = append(reportOutput.Reports,
+		componentReport.Reports = append(componentReport.Reports,
 			Report{
 				Name:       "Blocked",
 				Kind:       "Registries",
@@ -112,7 +112,7 @@ func (e ImageExtraction) buildReportOutput() (Output, error) {
 	}
 
 	for range e.RegistriesConfig.Registries["insecure"].List {
-		reportOutput.Reports = append(reportOutput.Reports,
+		componentReport.Reports = append(componentReport.Reports,
 			Report{
 				Name:       "Insecure",
 				Kind:       "Registries",
@@ -122,7 +122,7 @@ func (e ImageExtraction) buildReportOutput() (Output, error) {
 	}
 
 	for _, registry := range e.RegistriesConfig.Registries["search"].List {
-		reportOutput.Reports = append(reportOutput.Reports,
+		componentReport.Reports = append(componentReport.Reports,
 			Report{
 				Name:       "Search",
 				Kind:       "Registries",
@@ -132,7 +132,7 @@ func (e ImageExtraction) buildReportOutput() (Output, error) {
 			})
 	}
 
-	reportOutput.Reports = append(reportOutput.Reports,
+	componentReport.Reports = append(componentReport.Reports,
 		Report{
 			Name:       "AllowedRegistriesForImport",
 			Kind:       "MasterConfig.ImagePolicyConfig",
@@ -140,7 +140,7 @@ func (e ImageExtraction) buildReportOutput() (Output, error) {
 			Confidence: HighConfidence,
 		})
 
-	reportOutput.Reports = append(reportOutput.Reports,
+	componentReport.Reports = append(componentReport.Reports,
 		Report{
 			Name:       "AdditionalTrustedCA",
 			Kind:       "MasterConfig.ImagePolicyConfig",
@@ -148,13 +148,17 @@ func (e ImageExtraction) buildReportOutput() (Output, error) {
 			Confidence: HighConfidence,
 		})
 
-	reportOutput.Reports = append(reportOutput.Reports,
+	componentReport.Reports = append(componentReport.Reports,
 		Report{
 			Name:       "ExternalRegistryHostname",
 			Kind:       "MasterConfig.ImagePolicyConfig",
 			Supported:  true,
 			Confidence: HighConfidence,
 		})
+
+	reportOutput := ReportOutput{
+		ComponentReports: []ComponentReport{componentReport},
+	}
 
 	return reportOutput, nil
 }
